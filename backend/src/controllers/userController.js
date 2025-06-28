@@ -60,10 +60,17 @@ class UserController {
       }
 
       // 입력 데이터 검증
-      if (!name || !bio) {
+      if (!name || typeof name !== 'string' || name.trim().length === 0) {
         return res.status(400).json({
-          error: 'Missing required fields',
-          details: 'Name and bio are required'
+          error: 'Invalid name',
+          details: 'Name is required and must be a non-empty string'
+        });
+      }
+
+      if (!bio || typeof bio !== 'string' || bio.trim().length === 0) {
+        return res.status(400).json({
+          error: 'Invalid bio',
+          details: 'Bio is required and must be a non-empty string'
         });
       }
 

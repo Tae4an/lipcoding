@@ -3,7 +3,6 @@ require('dotenv').config({ silent: true }); // .env 파일이 없어도 오류 �
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
 const swaggerUi = require('swagger-ui-express');
 const YAML = require('yamljs');
 const path = require('path');
@@ -14,19 +13,11 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const mentorRoutes = require('./routes/mentors');
 const matchRequestRoutes = require('./routes/matchRequests');
+const { generalLimiter } = require('./middleware/rateLimiter');
+const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
-
-// Rate limiting 설정
-const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15분
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // 최대 100 요청
-  message: {
-    error: 'Too many requests',
-    details: 'Please try again later'
-  }
-});
 
 // 미들웨어 설정
 app.use(helmet({
@@ -45,7 +36,7 @@ app.use(cors({
   credentials: true
 }));
 
-app.use(limiter);
+app.use(generalLimiter);
 app.use(express.json({ limit: '1mb' })); // Base64 이미지를 위한 크기 제한
 app.use(express.urlencoded({ extended: true }));
 
@@ -94,23 +85,9 @@ app.use('/api', userRoutes);
 app.use('/api', mentorRoutes);
 app.use('/api', matchRequestRoutes);
 
-// 404 에러 핸들러
-app.use('*', (req, res) => {
-  res.status(404).json({
-    error: 'Not found',
-    details: 'The requested resource was not found'
-  });
-});
-
-// 전역 에러 핸들러
-app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
-  
-  res.status(err.status || 500).json({
-    error: err.message || 'Internal server error',
-    details: process.env.NODE_ENV === 'development' ? err.stack : 'Something went wrong'
-  });
-});
+// 에러 핸들러 (라우트 등록 후에 위치해야 함)
+app.use('*', notFoundHandler);
+app.use(errorHandler);
 
 // 데이터베이스 초기화 및 서버 시작
 async function startServer() {

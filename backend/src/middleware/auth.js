@@ -34,10 +34,27 @@ const authenticateToken = async (req, res, next) => {
 
     next();
   } catch (error) {
-    return res.status(401).json({ 
-      error: 'Invalid token',
-      details: error.message
-    });
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ 
+        error: 'Token expired',
+        details: 'Your session has expired. Please log in again.'
+      });
+    } else if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ 
+        error: 'Invalid token',
+        details: 'The provided token is malformed or invalid.'
+      });
+    } else if (error.name === 'NotBeforeError') {
+      return res.status(401).json({ 
+        error: 'Token not active',
+        details: 'The token is not active yet.'
+      });
+    } else {
+      return res.status(401).json({ 
+        error: 'Authentication failed',
+        details: error.message
+      });
+    }
   }
 };
 

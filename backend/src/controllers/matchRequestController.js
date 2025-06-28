@@ -68,7 +68,7 @@ class MatchRequestController {
       });
     } catch (error) {
       if (error.message.includes('Request already exists')) {
-        return res.status(400).json({
+        return res.status(409).json({
           error: 'Duplicate request',
           details: 'A request already exists between this mentor and mentee'
         });

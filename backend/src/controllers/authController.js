@@ -50,7 +50,7 @@ class AuthController {
       });
     } catch (error) {
       if (error.message === 'Email already exists') {
-        return res.status(400).json({
+        return res.status(409).json({
           error: 'Email already exists',
           details: 'An account with this email already exists'
         });
@@ -70,7 +70,7 @@ class AuthController {
 
       // 입력 데이터 검증
       if (!email || !password) {
-        return res.status(400).json({
+        return res.status(401).json({
           error: 'Missing credentials',
           details: 'Email and password are required'
         });
