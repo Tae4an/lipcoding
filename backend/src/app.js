@@ -1,4 +1,5 @@
-require('dotenv').config();
+// 환경 변수 설정 (CI/CD에서 안전하게 처리)
+require('dotenv').config({ silent: true }); // .env 파일이 없어도 오류 발생하지 않음
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -49,8 +50,24 @@ app.use(express.json({ limit: '1mb' })); // Base64 이미지를 위한 크기 �
 app.use(express.urlencoded({ extended: true }));
 
 // OpenAPI 문서 설정
-const openApiPath = path.join(__dirname, '../../openapi.yaml');
-const swaggerDocument = YAML.load(openApiPath);
+let swaggerDocument;
+try {
+  const openApiPath = path.join(__dirname, '../../openapi.yaml');
+  swaggerDocument = YAML.load(openApiPath);
+  console.log('OpenAPI document loaded successfully');
+} catch (error) {
+  console.warn('Failed to load OpenAPI document:', error.message);
+  // 기본 문서 설정
+  swaggerDocument = {
+    openapi: '3.0.0',
+    info: {
+      title: 'Mentor-Mentee Matching API',
+      version: '1.0.0',
+      description: 'API for mentor-mentee matching platform'
+    },
+    paths: {}
+  };
+}
 
 // Swagger UI 설정
 app.use('/swagger-ui', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
@@ -98,6 +115,11 @@ app.use((err, req, res, next) => {
 // 데이터베이스 초기화 및 서버 시작
 async function startServer() {
   try {
+    console.log('Starting server...');
+    console.log('Working directory:', process.cwd());
+    console.log('Environment:', process.env.NODE_ENV || 'development');
+    console.log('CI environment:', process.env.CI || 'false');
+    
     // 데이터베이스 연결
     await database.connect();
     console.log('Database connected successfully');
@@ -123,6 +145,7 @@ async function startServer() {
     return server;
   } catch (error) {
     console.error('Failed to start server:', error);
+    console.error('Error stack:', error.stack);
     process.exit(1);
   }
 }
