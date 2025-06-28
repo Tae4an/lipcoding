@@ -1,11 +1,13 @@
 const MatchRequest = require('../models/MatchRequestModel');
 const User = require('../models/User');
+const database = require('../models/database');
 
 class MatchRequestController {
   async createMatchRequest(req, res) {
     try {
       console.log('Creating match request with body:', req.body);
       console.log('User from token:', req.user);
+      console.log('Database connection status:', !!database.getDb());
 
       // 멘티만 요청 생성 가능
       if (req.user.role !== 'mentee') {
@@ -35,11 +37,33 @@ class MatchRequestController {
         });
       }
 
+      // 메시지 길이 제한 추가
+      if (message.length > 10000) {
+        console.log('Message too long:', message.length);
+        return res.status(400).json({
+          error: 'Message too long',
+          details: 'Message must be less than 10,000 characters'
+        });
+      }
+
       // menteeId는 JWT 토큰에서 추출
       const menteeId = req.user.id;
 
+      console.log('Looking for mentor with ID:', mentorId);
+      
       // 멘토 존재 여부 확인
-      const mentor = await User.findById(mentorId);
+      let mentor;
+      try {
+        mentor = await User.findById(mentorId);
+        console.log('Found mentor:', mentor);
+      } catch (userError) {
+        console.error('Error finding mentor:', userError);
+        return res.status(500).json({
+          error: 'Database error',
+          details: 'Failed to verify mentor information'
+        });
+      }
+
       if (!mentor || mentor.role !== 'mentor') {
         console.log('Mentor validation failed:', { mentor, mentorId });
         return res.status(400).json({
@@ -52,35 +76,60 @@ class MatchRequestController {
       const isTestEnv = process.env.NODE_ENV === 'test' || process.env.CI === 'true';
       
       if (!isTestEnv) {
-        // 멘티에게 이미 pending 요청이 있는지 확인
-        const hasPendingRequest = await MatchRequest.checkPendingRequests(req.user.id);
-        if (hasPendingRequest) {
-          console.log('Mentee has pending request:', req.user.id);
-          return res.status(400).json({
-            error: 'Pending request exists',
-            details: 'You already have a pending match request. Please wait for it to be resolved or cancel it first.'
-          });
-        }
+        try {
+          // 멘티에게 이미 pending 요청이 있는지 확인
+          const hasPendingRequest = await MatchRequest.checkPendingRequests(req.user.id);
+          if (hasPendingRequest) {
+            console.log('Mentee has pending request:', req.user.id);
+            return res.status(400).json({
+              error: 'Pending request exists',
+              details: 'You already have a pending match request. Please wait for it to be resolved or cancel it first.'
+            });
+          }
 
-        // 멘토가 이미 수락한 요청이 있는지 확인
-        const hasAcceptedRequest = await MatchRequest.checkAcceptedRequests(mentorId);
-        if (hasAcceptedRequest) {
-          console.log('Mentor has accepted request:', mentorId);
-          return res.status(400).json({
-            error: 'Mentor unavailable',
-            details: 'This mentor has already accepted another request'
+          // 멘토가 이미 수락한 요청이 있는지 확인
+          const hasAcceptedRequest = await MatchRequest.checkAcceptedRequests(mentorId);
+          if (hasAcceptedRequest) {
+            console.log('Mentor has accepted request:', mentorId);
+            return res.status(400).json({
+              error: 'Mentor unavailable',
+              details: 'This mentor has already accepted another request'
+            });
+          }
+        } catch (checkError) {
+          console.error('Error checking existing requests:', checkError);
+          return res.status(500).json({
+            error: 'Database error',
+            details: 'Failed to check existing requests'
           });
         }
       }
 
-      // 매칭 요청 생성
-      const matchRequest = await MatchRequest.create({
+      console.log('Creating match request with data:', {
         mentorId: parseInt(mentorId),
         menteeId: parseInt(menteeId),
         message: message.trim()
       });
 
-      console.log('Match request created successfully:', matchRequest);
+      // 매칭 요청 생성
+      let matchRequest;
+      try {
+        matchRequest = await MatchRequest.create({
+          mentorId: parseInt(mentorId),
+          menteeId: parseInt(menteeId),
+          message: message.trim()
+        });
+        console.log('Match request created successfully:', matchRequest);
+      } catch (createError) {
+        console.error('Error creating match request:', createError);
+        if (createError.message.includes('Request already exists')) {
+          return res.status(409).json({
+            error: 'Duplicate request',
+            details: 'A request already exists between this mentor and mentee'
+          });
+        }
+        throw createError; // Re-throw to be caught by outer catch
+      }
 
       res.status(201).json({
         id: matchRequest.id,

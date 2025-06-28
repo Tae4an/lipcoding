@@ -10,14 +10,18 @@ class MatchRequest {
         VALUES (?, ?, ?)
       `;
       
+      console.log('Executing MatchRequest.create with:', { mentorId, menteeId, message });
+      
       database.getDb().run(query, [mentorId, menteeId, message], function(err) {
         if (err) {
+          console.error('Database error in MatchRequest.create:', err);
           if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
             reject(new Error('Request already exists between this mentor and mentee'));
           } else {
             reject(err);
           }
         } else {
+          console.log('MatchRequest created with ID:', this.lastID);
           resolve({ 
             id: this.lastID, 
             mentorId, 

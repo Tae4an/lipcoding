@@ -141,6 +141,24 @@ app.get('/api/spec', (req, res) => {
   res.json(swaggerDocument);
 });
 
+// 흔히 사용되는 패턴들 추가
+app.get('/v1/openapi.json', (req, res) => {
+  res.json(swaggerDocument);
+});
+
+app.get('/api/v1/openapi.json', (req, res) => {
+  res.json(swaggerDocument);
+});
+
+app.get('/openapi', (req, res) => {
+  res.json(swaggerDocument);
+});
+
+app.get('/api/openapi', (req, res) => {
+  console.log('API openapi endpoint hit');
+  res.json(swaggerDocument);
+});
+
 // 루트 경로에서 Swagger UI로 리다이렉트
 app.get('/', (req, res) => {
   res.redirect('/swagger-ui');
@@ -151,6 +169,12 @@ app.use('/api', authRoutes);
 app.use('/api', userRoutes);
 app.use('/api', mentorRoutes);
 app.use('/api', matchRequestRoutes);
+
+// 요청 로깅 미들웨어 추가
+app.use('*', (req, res, next) => {
+  console.log(`Unmatched request: ${req.method} ${req.originalUrl}`);
+  next();
+});
 
 // 404 에러 핸들러
 app.use('*', (req, res) => {

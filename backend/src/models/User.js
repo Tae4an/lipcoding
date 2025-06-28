@@ -49,11 +49,17 @@ class User {
       
       database.getDb().get(query, [id], (err, row) => {
         if (err) {
+          console.error('Database error in findById:', err);
           reject(err);
         } else {
           if (row) {
-            // skills를 JSON으로 파싱
-            row.skills = JSON.parse(row.skills || '[]');
+            try {
+              // skills를 JSON으로 파싱 (안전하게)
+              row.skills = JSON.parse(row.skills || '[]');
+            } catch (jsonError) {
+              console.warn('Failed to parse skills JSON, using empty array:', jsonError);
+              row.skills = [];
+            }
           }
           resolve(row);
         }
