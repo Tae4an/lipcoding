@@ -97,6 +97,19 @@ app.get('/openapi.yaml', (req, res) => {
   }
 });
 
+// API docs 별칭 경로들
+app.get('/api-docs', (req, res) => {
+  res.redirect('/swagger-ui');
+});
+
+app.get('/docs', (req, res) => {
+  res.redirect('/swagger-ui');
+});
+
+app.get('/swagger', (req, res) => {
+  res.redirect('/swagger-ui');
+});
+
 // 루트 경로에서 Swagger UI로 리다이렉트
 app.get('/', (req, res) => {
   res.redirect('/swagger-ui');

@@ -43,6 +43,36 @@ class UserController {
     try {
       const { id, name, role, bio, image, skills } = req.body;
 
+      // 필수 필드 검증을 먼저 수행
+      if (!name || typeof name !== 'string' || name.trim().length === 0) {
+        return res.status(400).json({
+          error: 'Invalid name',
+          details: 'Name is required and must be a non-empty string'
+        });
+      }
+
+      if (!bio || typeof bio !== 'string' || bio.trim().length === 0) {
+        return res.status(400).json({
+          error: 'Invalid bio',
+          details: 'Bio is required and must be a non-empty string'
+        });
+      }
+
+      if (!role || !['mentor', 'mentee'].includes(role)) {
+        return res.status(400).json({
+          error: 'Invalid role',
+          details: 'Role is required and must be either "mentor" or "mentee"'
+        });
+      }
+
+      // id 필드 검증
+      if (id === undefined || id === null) {
+        return res.status(400).json({
+          error: 'Missing user ID',
+          details: 'User ID is required for profile update'
+        });
+      }
+
       // 권한 확인 - 자신의 프로필만 수정 가능
       if (parseInt(id) !== req.user.id) {
         return res.status(403).json({
@@ -56,21 +86,6 @@ class UserController {
         return res.status(400).json({
           error: 'Invalid role',
           details: 'Cannot change user role'
-        });
-      }
-
-      // 입력 데이터 검증
-      if (!name || typeof name !== 'string' || name.trim().length === 0) {
-        return res.status(400).json({
-          error: 'Invalid name',
-          details: 'Name is required and must be a non-empty string'
-        });
-      }
-
-      if (!bio || typeof bio !== 'string' || bio.trim().length === 0) {
-        return res.status(400).json({
-          error: 'Invalid bio',
-          details: 'Bio is required and must be a non-empty string'
         });
       }
 

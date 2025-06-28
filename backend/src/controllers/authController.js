@@ -49,6 +49,8 @@ class AuthController {
         }
       });
     } catch (error) {
+      console.error('Signup error:', error);
+      
       if (error.message === 'Email already exists') {
         return res.status(409).json({
           error: 'Email already exists',
@@ -56,7 +58,14 @@ class AuthController {
         });
       }
       
-      console.error('Signup error:', error);
+      // SQLite 제약 조건 위반 에러도 처리
+      if (error.code === 'SQLITE_CONSTRAINT_UNIQUE' || error.message.includes('UNIQUE constraint failed')) {
+        return res.status(409).json({
+          error: 'Email already exists',
+          details: 'An account with this email already exists'
+        });
+      }
+      
       res.status(500).json({
         error: 'Internal server error',
         details: 'Failed to create user account'

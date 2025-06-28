@@ -22,6 +22,13 @@ class MatchRequestController {
         });
       }
 
+      if (typeof message !== 'string' || message.trim().length === 0) {
+        return res.status(400).json({
+          error: 'Invalid message',
+          details: 'Message must be a non-empty string'
+        });
+      }
+
       // menteeId는 JWT 토큰에서 추출
       const menteeId = req.user.id;
 
@@ -56,10 +63,10 @@ class MatchRequestController {
       const matchRequest = await MatchRequest.create({
         mentorId: parseInt(mentorId),
         menteeId: parseInt(menteeId),
-        message
+        message: message.trim()
       });
 
-      res.json({
+      res.status(201).json({
         id: matchRequest.id,
         mentorId: matchRequest.mentorId,
         menteeId: matchRequest.menteeId,
