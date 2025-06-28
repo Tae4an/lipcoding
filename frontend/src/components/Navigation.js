@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { Navbar, Nav, Container, Button, Badge } from 'react-bootstrap';
 import { useAuth } from '../context/AuthContext';
 
 const Navigation = () => {
@@ -16,108 +17,88 @@ const Navigation = () => {
 
   if (!isAuthenticated) {
     return (
-      <nav className="bg-white shadow-sm border-b">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="flex justify-between items-center h-16">
-            <Link to="/" className="text-xl font-bold text-blue-600">
-              MentorMatch
-            </Link>
-            <div className="flex space-x-4">
-              <Link
-                to="/login"
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                  isActivePath('/login')
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-700 hover:text-blue-600'
-                }`}
+      <Navbar bg="primary" variant="dark" expand="lg" className="shadow-sm">
+        <Container>
+          <Navbar.Brand as={Link} to="/" className="fw-bold">
+            <i className="fas fa-graduation-cap me-2"></i>
+            MentorMatch
+          </Navbar.Brand>
+          <Navbar.Toggle aria-controls="basic-navbar-nav" />
+          <Navbar.Collapse id="basic-navbar-nav">
+            <Nav className="ms-auto">
+              <Nav.Link 
+                as={Link} 
+                to="/login" 
+                className={isActivePath('/login') ? 'active' : ''}
               >
                 로그인
-              </Link>
-              <Link
-                to="/signup"
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                  isActivePath('/signup')
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
+              </Nav.Link>
+              <Button 
+                as={Link} 
+                to="/signup" 
+                variant="outline-light" 
+                className="ms-2"
               >
                 회원가입
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+              </Button>
+            </Nav>
+          </Navbar.Collapse>
+        </Container>
+      </Navbar>
     );
   }
 
   return (
-    <nav className="bg-white shadow-sm border-b">
-      <div className="max-w-6xl mx-auto px-4">
-        <div className="flex justify-between items-center h-16">
-          <Link to="/" className="text-xl font-bold text-blue-600">
-            MentorMatch
-          </Link>
-          
-          <div className="flex items-center space-x-6">
-            <Link
-              to="/mentors"
-              className={`text-sm font-medium transition-colors ${
-                isActivePath('/mentors')
-                  ? 'text-blue-600'
-                  : 'text-gray-700 hover:text-blue-600'
-              }`}
+    <Navbar bg="primary" variant="dark" expand="lg" className="shadow-sm">
+      <Container>
+        <Navbar.Brand as={Link} to="/" className="fw-bold">
+          <i className="fas fa-graduation-cap me-2"></i>
+          MentorMatch
+        </Navbar.Brand>
+        
+        <Navbar.Toggle aria-controls="basic-navbar-nav" />
+        <Navbar.Collapse id="basic-navbar-nav">
+          <Nav className="me-auto">
+            <Nav.Link 
+              as={Link} 
+              to="/mentors" 
+              className={isActivePath('/mentors') ? 'active' : ''}
             >
+              <i className="fas fa-users me-1"></i>
               멘토 찾기
-            </Link>
+            </Nav.Link>
             
-            <Link
-              to="/requests"
-              className={`text-sm font-medium transition-colors ${
-                isActivePath('/requests')
-                  ? 'text-blue-600'
-                  : 'text-gray-700 hover:text-blue-600'
-              }`}
+            <Nav.Link 
+              as={Link} 
+              to="/requests" 
+              className={isActivePath('/requests') ? 'active' : ''}
             >
+              <i className="fas fa-handshake me-1"></i>
               {isMentor ? '받은 요청' : '내 요청'}
-            </Link>
-            
-            <div className="relative group">
-              <button className="flex items-center space-x-2 text-sm font-medium text-gray-700 hover:text-blue-600">
-                <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                  {user?.image_data ? (
-                    <img
-                      src={user.image_data}
-                      alt="Profile"
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-xs font-medium">
-                      {user?.name?.charAt(0)?.toUpperCase()}
-                    </span>
-                  )}
-                </div>
-                <span>{user?.name}</span>
-              </button>
-              
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
-                <Link
-                  to="/profile"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                >
-                  내 프로필
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                >
-                  로그아웃
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </nav>
+            </Nav.Link>
+          </Nav>
+          
+          <Nav className="align-items-center">
+            <Nav.Link as={Link} to="/profile">
+              <i className="fas fa-user me-1"></i>
+              {user?.name}
+              <Badge bg="secondary" className="ms-2">
+                {isMentor ? '멘토' : '멘티'}
+              </Badge>
+            </Nav.Link>
+            <Button 
+              variant="outline-light" 
+              size="sm" 
+              onClick={handleLogout}
+              className="ms-2"
+            >
+              <i className="fas fa-sign-out-alt me-1"></i>
+              로그아웃
+            </Button>
+          </Nav>
+        </Navbar.Collapse>
+      </Container>
+    </Navbar>
   );
 };
 

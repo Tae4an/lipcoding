@@ -2,7 +2,7 @@ import api from './api';
 
 export const matchService = {
   // 매칭 요청 생성
-  async createMatchRequest(mentorId, message) {
+  async createRequest(mentorId, message) {
     try {
       const response = await api.post('/match-requests', {
         mentorId,
@@ -14,8 +14,8 @@ export const matchService = {
     }
   },
 
-  // 사용자의 매칭 요청 목록 조회
-  async getMyMatchRequests() {
+  // 사용자의 매칭 요청 목록 조회 (멘티가 보낸 요청들)
+  async getSentRequests() {
     try {
       const response = await api.get('/match-requests/my');
       return response.data;
@@ -25,7 +25,7 @@ export const matchService = {
   },
 
   // 멘토가 받은 매칭 요청 목록 조회
-  async getReceivedMatchRequests() {
+  async getReceivedRequests() {
     try {
       const response = await api.get('/match-requests/received');
       return response.data;
@@ -35,7 +35,7 @@ export const matchService = {
   },
 
   // 매칭 요청 수락
-  async acceptMatchRequest(requestId) {
+  async acceptRequest(requestId) {
     try {
       const response = await api.put(`/match-requests/${requestId}/accept`);
       return response.data;
@@ -45,7 +45,7 @@ export const matchService = {
   },
 
   // 매칭 요청 거절
-  async rejectMatchRequest(requestId, reason = '') {
+  async rejectRequest(requestId, reason = '') {
     try {
       const response = await api.put(`/match-requests/${requestId}/reject`, {
         reason
@@ -56,8 +56,8 @@ export const matchService = {
     }
   },
 
-  // 매칭 요청 취소
-  async cancelMatchRequest(requestId) {
+  // 매칭 요청 취소 (멘티가 자신의 요청을 취소)
+  async cancelRequest(requestId) {
     try {
       const response = await api.delete(`/match-requests/${requestId}`);
       return response.data;
@@ -67,7 +67,7 @@ export const matchService = {
   },
 
   // 특정 매칭 요청 상세 조회
-  async getMatchRequestById(requestId) {
+  async getRequestById(requestId) {
     try {
       const response = await api.get(`/match-requests/${requestId}`);
       return response.data;
