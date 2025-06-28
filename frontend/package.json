@@ -15,6 +15,7 @@
   "scripts": {
     "start": "react-scripts start",
     "start:bg": "nohup react-scripts start > frontend.log 2>&1 &",
+    "start:ci": "npm ci && BROWSER=none nohup react-scripts start > frontend.log 2>&1 &",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
