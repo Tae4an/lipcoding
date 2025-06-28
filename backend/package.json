@@ -5,6 +5,8 @@
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
+    "start:bg": "nohup node src/app.js > server.log 2>&1 &",
+    "start:prod": "NODE_ENV=production node src/app.js",
     "dev": "nodemon src/app.js",
     "test": "jest"
   },

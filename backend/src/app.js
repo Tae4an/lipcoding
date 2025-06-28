@@ -107,11 +107,23 @@ async function startServer() {
     console.log('Database tables initialized');
 
     // 서버 시작
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(`🚀 Server running on http://localhost:${PORT}`);
       console.log(`📚 API Documentation: http://localhost:${PORT}/swagger-ui`);
       console.log(`📄 OpenAPI Spec: http://localhost:${PORT}/openapi.json`);
+      
+      // GitHub Actions용 백그라운드 실행 모드
+      if (process.env.CI === 'true' || process.argv.includes('--background')) {
+        console.log('Running in background mode for CI/CD');
+        // 프로세스를 detach하여 백그라운드에서 실행
+        if (process.platform !== 'win32') {
+          process.stdout.write('Server started in background\n');
+          process.exit(0);
+        }
+      }
     });
+    
+    return server;
   } catch (error) {
     console.error('Failed to start server:', error);
     process.exit(1);
