@@ -52,12 +52,15 @@ app.use(limiter);
 app.use(express.json({ limit: '1mb' })); // Base64 이미지를 위한 크기 제한
 app.use(express.urlencoded({ extended: true }));
 
+// 정적 파일 제공 - openapi.yaml 파일을 직접 서빙
+app.use(express.static(path.join(__dirname, '../..')));
+
 // OpenAPI 문서 설정
 let swaggerDocument;
 try {
   const openApiPath = path.join(__dirname, '../../openapi.yaml');
   swaggerDocument = YAML.load(openApiPath);
-  console.log('OpenAPI document loaded successfully');
+  console.log('OpenAPI document loaded successfully from:', openApiPath);
 } catch (error) {
   console.warn('Failed to load OpenAPI document:', error.message);
   // 기본 문서 설정
@@ -83,11 +86,30 @@ app.use('/swagger-ui', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
 
 // OpenAPI JSON 엔드포인트
 app.get('/openapi.json', (req, res) => {
+  console.log('OpenAPI JSON requested');
   res.json(swaggerDocument);
 });
 
 // OpenAPI YAML 엔드포인트 추가
 app.get('/openapi.yaml', (req, res) => {
+  console.log('OpenAPI YAML requested');
+  try {
+    const yamlContent = YAML.stringify(swaggerDocument, 4);
+    res.set('Content-Type', 'text/yaml');
+    res.send(yamlContent);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate YAML' });
+  }
+});
+
+// 다양한 OpenAPI 경로들
+app.get('/api/openapi.json', (req, res) => {
+  console.log('API OpenAPI JSON requested');
+  res.json(swaggerDocument);
+});
+
+app.get('/api/openapi.yaml', (req, res) => {
+  console.log('API OpenAPI YAML requested');
   try {
     const yamlContent = YAML.stringify(swaggerDocument, 4);
     res.set('Content-Type', 'text/yaml');
@@ -108,6 +130,15 @@ app.get('/docs', (req, res) => {
 
 app.get('/swagger', (req, res) => {
   res.redirect('/swagger-ui');
+});
+
+// 그 외 가능한 경로들
+app.get('/spec', (req, res) => {
+  res.json(swaggerDocument);
+});
+
+app.get('/api/spec', (req, res) => {
+  res.json(swaggerDocument);
 });
 
 // 루트 경로에서 Swagger UI로 리다이렉트
